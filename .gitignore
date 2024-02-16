@@ -1,0 +1,43 @@
+# System files
+.DS_Store
+Thumbs.db
+
+# Dependency directories
+node_modules/
+vendor/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# Build files
+dist/
+build/
+*.log
+
+# Environment variables
+.env
+
+# OS generated files
+ehthumbs.db
+Icon?
+Desktop.ini
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Backup files
+*~
+*.bak
+*.swp
+*.swo
+*.swn
+*.swm
+*.swl
+*.swo
+*.swp
+*.bak
+*.tmp
