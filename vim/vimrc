@@ -1,0 +1,54 @@
+" =============================================================================
+" Example .vimrc — replace with your own
+" Linked to:
+"   Linux : ~/.vimrc
+"   Windows: $HOME\_vimrc
+" =============================================================================
+
+set nocompatible
+syntax on
+filetype plugin indent on
+
+" --- UI ---
+set number
+set relativenumber
+set cursorline
+set ruler
+set showcmd
+set wildmenu
+set laststatus=2
+
+" --- Editing ---
+set expandtab
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
+set autoindent
+set smartindent
+set backspace=indent,eol,start
+
+" --- Search ---
+set hlsearch
+set incsearch
+set ignorecase
+set smartcase
+
+" --- Files ---
+set encoding=utf-8
+set fileencoding=utf-8
+set hidden
+set noswapfile
+set nobackup
+set undofile
+set undodir=~/.vim/undo//
+silent! call mkdir(expand('~/.vim/undo'), 'p')
+
+" --- Keymaps ---
+let mapleader = ","
+nnoremap <leader>w :w<CR>
+nnoremap <leader>q :q<CR>
+nnoremap <leader><space> :nohlsearch<CR>
+
+" --- Colors ---
+set background=dark
+silent! colorscheme desert
