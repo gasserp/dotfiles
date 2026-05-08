@@ -37,3 +37,30 @@ alias v='vim'
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
+
+# --- Code dir + repo navigation ---
+# Override by exporting CODE_DIR before this file is sourced.
+export CODE_DIR="${CODE_DIR:-$HOME/code}"
+
+cdc() { cd "$CODE_DIR" || return; }
+
+ccd() {
+    if [ ! -d "$CODE_DIR" ]; then
+        printf 'Code dir %s not found.\n' "$CODE_DIR" >&2
+        return 1
+    fi
+    if ! command -v fzf >/dev/null 2>&1; then
+        printf 'fzf not installed.\n' >&2
+        return 1
+    fi
+    local sel
+    sel="$(find "$CODE_DIR" -mindepth 1 -maxdepth 1 -type d 2>/dev/null | fzf)" || return
+    [ -n "$sel" ] && cd "$sel" || return
+}
+
+# --- Terraform shortcuts ---
+if command -v terraform >/dev/null 2>&1; then
+    tfp() { terraform plan "$@"; }
+    tfa() { terraform apply "$@"; }
+    tfi() { terraform init "$@"; }
+fi

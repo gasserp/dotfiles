@@ -36,13 +36,41 @@ if (Get-Command oh-my-posh -ErrorAction SilentlyContinue) {
 
 # --- Aliases ---
 Set-Alias -Name g    -Value git
-Set-Alias -Name lg   -Value lazygit
 Set-Alias -Name vi   -Value vim
 Set-Alias -Name which -Value Get-Command
+
+if (Get-Command lazygit -ErrorAction SilentlyContinue) {
+    Set-Alias -Name lg -Value lazygit -Option AllScope -Force
+}
 
 function .. { Set-Location .. }
 function ... { Set-Location ../.. }
 function ll { Get-ChildItem -Force @args }
+
+# --- Code dir + repo navigation ---
+# Override by setting $env:CODE_DIR before the profile loads.
+$CodeDir = if ($env:CODE_DIR) { $env:CODE_DIR } else { Join-Path $HOME 'code' }
+
+function cdc { Set-Location -LiteralPath $CodeDir }
+
+function ccd {
+    if (-not (Test-Path -LiteralPath $CodeDir)) {
+        Write-Warning "Code dir '$CodeDir' not found."
+        return
+    }
+    $dirs = Get-ChildItem -LiteralPath $CodeDir -Directory -ErrorAction SilentlyContinue
+    if (-not $dirs) { Write-Warning "No repos in '$CodeDir'."; return }
+    $selection = $dirs | Select-Object -ExpandProperty FullName | fzf
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($selection)) { return }
+    Set-Location -LiteralPath $selection
+}
+
+# --- Terraform shortcuts ---
+if (Get-Command terraform -ErrorAction SilentlyContinue) {
+    function tfp { param([Parameter(ValueFromRemainingArguments=$true)][string[]]$Args) terraform plan @Args }
+    function tfa { param([Parameter(ValueFromRemainingArguments=$true)][string[]]$Args) terraform apply @Args }
+    function tfi { param([Parameter(ValueFromRemainingArguments=$true)][string[]]$Args) terraform init @Args }
+}
 
 # --- Az CLI tab completion ---
 if (Get-Command az -ErrorAction SilentlyContinue) {
