@@ -1,0 +1,47 @@
+# =============================================================================
+# Example lazygit config — replace with your own
+# Linked to:
+#   Linux  : ~/.config/lazygit/config.yml
+#   Windows: %APPDATA%\lazygit\config.yml
+# Docs: https://github.com/jesseduffield/lazygit/blob/master/docs/Config.md
+# =============================================================================
+
+gui:
+  theme:
+    activeBorderColor:
+      - cyan
+      - bold
+    inactiveBorderColor:
+      - white
+    selectedLineBgColor:
+      - blue
+  showFileTree: true
+  showRandomTip: false
+  showCommandLog: false
+  scrollHeight: 2
+  mouseEvents: true
+  nerdFontsVersion: "3"
+
+git:
+  paging:
+    colorArg: always
+    pager: delta --paging=never --dark
+  autoFetch: true
+  autoRefresh: true
+  fetchAll: true
+  branchLogCmd: "git log --graph --color=always --abbrev-commit --decorate --date=relative --pretty=medium {{branchName}} --"
+  commit:
+    signOff: false
+    verbose: default
+
+update:
+  method: prompt
+
+confirmOnQuit: false
+quitOnTopLevelReturn: false
+disableStartupPopups: true
+
+keybinding:
+  universal:
+    quit: q
+    return: <esc>

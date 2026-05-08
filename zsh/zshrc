@@ -1,0 +1,79 @@
+# =============================================================================
+# Example .zshrc (Linux only) — replace with your own
+# No oh-my-zsh. Uses zsh-autosuggestions, zsh-syntax-highlighting, fzf.
+# Linked to: ~/.zshrc
+# =============================================================================
+
+# --- History ---
+HISTFILE="$HOME/.zsh_history"
+HISTSIZE=50000
+SAVEHIST=50000
+setopt EXTENDED_HISTORY
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_IGNORE_DUPS
+setopt HIST_IGNORE_SPACE
+setopt HIST_VERIFY
+setopt INC_APPEND_HISTORY
+setopt SHARE_HISTORY
+
+# --- Behavior ---
+setopt AUTO_CD
+setopt AUTO_PUSHD
+setopt PUSHD_IGNORE_DUPS
+setopt PUSHD_SILENT
+setopt INTERACTIVE_COMMENTS
+setopt PROMPT_SUBST
+
+# --- Completion ---
+autoload -Uz compinit && compinit -d "$HOME/.cache/zcompdump"
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
+
+# --- Key bindings ---
+bindkey -e
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
+
+# --- Plugins (installed by scripts/install-zsh-plugins.sh) ---
+ZSH_PLUGIN_DIR="${ZSH_PLUGIN_DIR:-$HOME/.local/share/zsh/plugins}"
+[ -f "$ZSH_PLUGIN_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
+    && source "$ZSH_PLUGIN_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh"
+[ -f "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ] \
+    && source "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
+[ -f "$ZSH_PLUGIN_DIR/zsh-completions/zsh-completions.plugin.zsh" ] \
+    && source "$ZSH_PLUGIN_DIR/zsh-completions/zsh-completions.plugin.zsh"
+
+# --- fzf integration ---
+if command -v fzf >/dev/null 2>&1; then
+    if fzf --zsh >/dev/null 2>&1; then
+        source <(fzf --zsh)
+    else
+        [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
+        [ -f /usr/share/doc/fzf/examples/completion.zsh ]   && source /usr/share/doc/fzf/examples/completion.zsh
+        [ -f /usr/share/fzf/key-bindings.zsh ]              && source /usr/share/fzf/key-bindings.zsh
+        [ -f /usr/share/fzf/completion.zsh ]                && source /usr/share/fzf/completion.zsh
+    fi
+fi
+[ -f "$HOME/.config/fzf/fzf.zsh" ] && source "$HOME/.config/fzf/fzf.zsh"
+
+# --- zoxide (smarter cd) ---
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+
+# --- Aliases ---
+[ -f "$HOME/.config/zsh/aliases.zsh" ] && source "$HOME/.config/zsh/aliases.zsh"
+
+# --- oh-my-posh prompt (cross-shell prompt) ---
+if command -v oh-my-posh >/dev/null 2>&1; then
+    THEME="$HOME/.config/oh-my-posh/dotfiles.omp.json"
+    if [ -f "$THEME" ]; then
+        eval "$(oh-my-posh init zsh --config "$THEME")"
+    else
+        eval "$(oh-my-posh init zsh)"
+    fi
+else
+    PROMPT='%F{green}%n@%m%f:%F{blue}%~%f %# '
+fi
+
+# --- Az CLI completion ---
+[ -f /etc/bash_completion.d/azure-cli ] && source /etc/bash_completion.d/azure-cli 2>/dev/null

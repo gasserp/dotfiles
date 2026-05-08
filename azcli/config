@@ -1,0 +1,29 @@
+; =============================================================================
+; Example Azure CLI config — replace with your own
+; Linked to:
+;   Linux  : ~/.azure/config
+;   Windows: $HOME\.azure\config
+; Docs: https://learn.microsoft.com/cli/azure/azure-cli-configuration
+; =============================================================================
+
+[core]
+output = table
+only_show_errors = true
+disable_confirm_prompt = false
+
+[extension]
+use_dynamic_install = yes_without_prompt
+dynamic_install_allow_preview = false
+
+[logging]
+enable_log_file = no
+
+[update]
+check = on
+
+[telemetry]
+; Set to 'no' to opt out of Microsoft telemetry collection.
+enable = no
+
+[auto-upgrade]
+enable = on
