@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Linux installer for the dotfiles repo.
+# Linux / macOS installer for the dotfiles repo.
 # Installs the listed tools and symlinks the example configs into place.
 #
 # Usage:
@@ -12,6 +12,7 @@ set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MODE="${1:-all}"
+OS="$(uname -s)"
 
 log()   { printf '\033[1;34m[*]\033[0m %s\n' "$*"; }
 ok()    { printf '\033[1;32m[+]\033[0m %s\n' "$*"; }
@@ -22,13 +23,28 @@ error() { printf '\033[1;31m[x]\033[0m %s\n' "$*" >&2; }
 # Detect the package manager.
 # -----------------------------------------------------------------------------
 detect_pm() {
-    if command -v apt-get >/dev/null 2>&1; then echo apt
+    # Prefer brew on macOS; fall back to it on Linuxbrew too.
+    if [ "$OS" = "Darwin" ] && command -v brew >/dev/null 2>&1; then echo brew
+    elif command -v apt-get >/dev/null 2>&1; then echo apt
     elif command -v dnf  >/dev/null 2>&1; then echo dnf
     elif command -v pacman >/dev/null 2>&1; then echo pacman
+    elif command -v brew >/dev/null 2>&1; then echo brew
     else echo unknown
     fi
 }
 
+install_brew_if_missing() {
+    [ "$OS" = "Darwin" ] || return 0
+    command -v brew >/dev/null 2>&1 && return 0
+    log "Homebrew not found — installing…"
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # Add brew to PATH for the rest of this run.
+    if [ -x /opt/homebrew/bin/brew ];  then eval "$(/opt/homebrew/bin/brew shellenv)"
+    elif [ -x /usr/local/bin/brew ];   then eval "$(/usr/local/bin/brew shellenv)"
+    fi
+}
+
+install_brew_if_missing
 PM="$(detect_pm)"
 SUDO=""
 [ "$(id -u)" -ne 0 ] && command -v sudo >/dev/null 2>&1 && SUDO="sudo"
@@ -65,6 +81,13 @@ install_packages() {
         pacman)
             $SUDO pacman -Sy --noconfirm vim git curl wget unzip zsh fzf fd ripgrep bat lazygit ghostty
             ;;
+        brew)
+            brew update
+            brew install \
+                vim git zsh fzf fd ripgrep bat lazygit \
+                oh-my-posh azure-cli
+            brew install --cask visual-studio-code powershell ghostty
+            ;;
         *)
             warn "Unknown package manager — install tools manually."
             ;;
@@ -97,10 +120,23 @@ install_vscode() {
                     | $SUDO tee /etc/yum.repos.d/vscode.repo >/dev/null
                 $SUDO dnf install -y code
                 ;;
+            brew)
+                brew install --cask visual-studio-code
+                ;;
             *)
                 warn "Skipping VS Code (install manually for $PM)."
                 ;;
         esac
+    fi
+
+    # On macOS the `code` CLI lives inside the app bundle; expose it if missing.
+    if [ "$OS" = "Darwin" ] && ! command -v code >/dev/null 2>&1; then
+        local code_bin='/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code'
+        if [ -x "$code_bin" ]; then
+            mkdir -p "$HOME/.local/bin"
+            ln -sf "$code_bin" "$HOME/.local/bin/code"
+            export PATH="$HOME/.local/bin:$PATH"
+        fi
     fi
 
     if command -v code >/dev/null 2>&1 && [ -f "$DOTFILES/vscode/extensions.txt" ]; then
@@ -123,6 +159,7 @@ install_azure_cli() {
                 $SUDO dnf install -y https://packages.microsoft.com/config/rhel/9.0/packages-microsoft-prod.rpm 2>/dev/null || true
                 $SUDO dnf install -y azure-cli ;;
         pacman) $SUDO pacman -Sy --noconfirm azure-cli ;;
+        brew)   brew install azure-cli ;;
         *)      warn "Install azure-cli manually." ;;
     esac
 }
@@ -147,6 +184,9 @@ install_pwsh() {
             ;;
         pacman)
             warn "Install powershell-bin from AUR for PowerShell on Arch."
+            ;;
+        brew)
+            brew install --cask powershell
             ;;
     esac
 
@@ -223,8 +263,13 @@ create_links() {
     link "$DOTFILES/azcli/config" "$HOME/.azure/config"
 
     # vscode
-    link "$DOTFILES/vscode/settings.json"     "$HOME/.config/Code/User/settings.json"
-    link "$DOTFILES/vscode/keybindings.json"  "$HOME/.config/Code/User/keybindings.json"
+    if [ "$OS" = "Darwin" ]; then
+        local vscode_user="$HOME/Library/Application Support/Code/User"
+    else
+        local vscode_user="$HOME/.config/Code/User"
+    fi
+    link "$DOTFILES/vscode/settings.json"     "$vscode_user/settings.json"
+    link "$DOTFILES/vscode/keybindings.json"  "$vscode_user/keybindings.json"
 
     # powershell (Linux profile location)
     link "$DOTFILES/powershell/Microsoft.PowerShell_profile.ps1" \

@@ -23,7 +23,7 @@ OS that installs everything and symlinks the configs into place.
 
 ## Install
 
-### Linux
+### Linux / macOS
 
 ```bash
 git clone https://github.com/gasserp/dotfiles.git ~/dotfiles
@@ -33,11 +33,14 @@ cd ~/dotfiles
 ./install.sh packages-only   # only install/refresh packages
 ```
 
-Supports `apt` (Debian/Ubuntu), `dnf` (Fedora/RHEL), and `pacman` (Arch).
+Supports `brew` (macOS — installs Homebrew if missing), `apt`
+(Debian/Ubuntu), `dnf` (Fedora/RHEL), and `pacman` (Arch). VS Code configs
+land in `~/Library/Application Support/Code/User` on macOS and
+`~/.config/Code/User` on Linux.
 
 What it installs:
 `vim`, `git`, `zsh`, `fzf`, `fd`, `ripgrep`, `bat`, `lazygit`, VS Code, Azure
-CLI, PowerShell 7, oh-my-posh, and the zsh plugins
+CLI, PowerShell 7, oh-my-posh, Ghostty (macOS + Arch), and the zsh plugins
 `zsh-autosuggestions`, `zsh-syntax-highlighting`, `zsh-completions`
 (no oh-my-zsh).
 
