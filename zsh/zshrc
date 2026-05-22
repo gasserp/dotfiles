@@ -1,79 +1,73 @@
 # =============================================================================
-# Example .zshrc (Linux only) — replace with your own
-# No oh-my-zsh. Uses zsh-autosuggestions, zsh-syntax-highlighting, fzf.
-# Linked to: ~/.zshrc
+# .zshrc — linked to ~/.zshrc by install.sh
+# Plugin manager: zinit (bootstraps itself on first run).
+# Aliases / functions (cdc, ccd, tfp, tfa, tfi, lg, ...) come from
+# ~/.config/zsh/aliases.zsh, which install.sh links to zsh/aliases.zsh.
 # =============================================================================
 
-# --- History ---
-HISTFILE="$HOME/.zsh_history"
-HISTSIZE=50000
-SAVEHIST=50000
-setopt EXTENDED_HISTORY
-setopt HIST_EXPIRE_DUPS_FIRST
-setopt HIST_IGNORE_DUPS
-setopt HIST_IGNORE_SPACE
-setopt HIST_VERIFY
-setopt INC_APPEND_HISTORY
-setopt SHARE_HISTORY
+# Set the directory we want to store zinit and plugins
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 
-# --- Behavior ---
-setopt AUTO_CD
-setopt AUTO_PUSHD
-setopt PUSHD_IGNORE_DUPS
-setopt PUSHD_SILENT
-setopt INTERACTIVE_COMMENTS
-setopt PROMPT_SUBST
-
-# --- Completion ---
-autoload -Uz compinit && compinit -d "$HOME/.cache/zcompdump"
-zstyle ':completion:*' menu select
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
-zstyle ':completion:*' list-colors "${(s.:.)LS_COLORS}"
-
-# --- Key bindings ---
-bindkey -e
-bindkey '^[[A' history-search-backward
-bindkey '^[[B' history-search-forward
-
-# --- Plugins (installed by scripts/install-zsh-plugins.sh) ---
-ZSH_PLUGIN_DIR="${ZSH_PLUGIN_DIR:-$HOME/.local/share/zsh/plugins}"
-[ -f "$ZSH_PLUGIN_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh" ] \
-    && source "$ZSH_PLUGIN_DIR/zsh-autosuggestions/zsh-autosuggestions.zsh"
-[ -f "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ] \
-    && source "$ZSH_PLUGIN_DIR/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
-[ -f "$ZSH_PLUGIN_DIR/zsh-completions/zsh-completions.plugin.zsh" ] \
-    && source "$ZSH_PLUGIN_DIR/zsh-completions/zsh-completions.plugin.zsh"
-
-# --- fzf integration ---
-if command -v fzf >/dev/null 2>&1; then
-    if fzf --zsh >/dev/null 2>&1; then
-        source <(fzf --zsh)
-    else
-        [ -f /usr/share/doc/fzf/examples/key-bindings.zsh ] && source /usr/share/doc/fzf/examples/key-bindings.zsh
-        [ -f /usr/share/doc/fzf/examples/completion.zsh ]   && source /usr/share/doc/fzf/examples/completion.zsh
-        [ -f /usr/share/fzf/key-bindings.zsh ]              && source /usr/share/fzf/key-bindings.zsh
-        [ -f /usr/share/fzf/completion.zsh ]                && source /usr/share/fzf/completion.zsh
-    fi
+# Download Zinit, if it's not there yet
+if [ ! -d "$ZINIT_HOME" ]; then
+   mkdir -p "$(dirname $ZINIT_HOME)"
+   git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 fi
-[ -f "$HOME/.config/fzf/fzf.zsh" ] && source "$HOME/.config/fzf/fzf.zsh"
 
-# --- zoxide (smarter cd) ---
-command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+# Source/Load zinit
+source "${ZINIT_HOME}/zinit.zsh"
 
-# --- Aliases ---
+# Plugins
+zinit light zsh-users/zsh-syntax-highlighting
+zinit light zsh-users/zsh-completions
+zinit light zsh-users/zsh-autosuggestions
+zinit light Aloxaf/fzf-tab
+
+# Steal some stuff we want from ohmyzsh
+zinit snippet OMZP::git
+zinit snippet OMZP::sudo
+zinit snippet OMZP::azure
+zinit snippet OMZP::kubectl
+zinit snippet OMZP::kubectx
+
+# Set up Prompt (theme symlinked by install.sh)
+if [ -f "$HOME/.config/oh-my-posh/dotfiles.omp.json" ]; then
+    eval "$(oh-my-posh init zsh --config "$HOME/.config/oh-my-posh/dotfiles.omp.json")"
+else
+    eval "$(oh-my-posh init zsh)"
+fi
+
+# Load completions
+autoload -Uz compinit && compinit
+zinit cdreplay -q
+
+# History
+HISTSIZE=5000
+HISTFILE=~/.zsh_history
+SAVEHIST=$HISTSIZE
+HISTDUP=erase
+setopt appendhistory
+setopt sharehistory
+setopt hist_ignore_space
+setopt hist_ignore_all_dups
+setopt hist_save_no_dups
+setopt hist_ignore_dups
+setopt hist_find_no_dups
+
+# Case insensitive completion
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+# No default menu, we use fzf for suggestions
+zstyle ':completion:*' menu no
+# Folder preview
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
+zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
+
+# fzf shell integration
+eval "$(fzf --zsh)"
+
+# Dotfiles extras: FZF_DEFAULT_OPTS / fd preview, and shared aliases
+# (cdc, ccd, tfp, tfa, tfi, lg, g, gs, ...).
+[ -f "$HOME/.config/fzf/fzf.zsh" ]     && source "$HOME/.config/fzf/fzf.zsh"
 [ -f "$HOME/.config/zsh/aliases.zsh" ] && source "$HOME/.config/zsh/aliases.zsh"
 
-# --- oh-my-posh prompt (cross-shell prompt) ---
-if command -v oh-my-posh >/dev/null 2>&1; then
-    THEME="$HOME/.config/oh-my-posh/dotfiles.omp.json"
-    if [ -f "$THEME" ]; then
-        eval "$(oh-my-posh init zsh --config "$THEME")"
-    else
-        eval "$(oh-my-posh init zsh)"
-    fi
-else
-    PROMPT='%F{green}%n@%m%f:%F{blue}%~%f %# '
-fi
-
-# --- Az CLI completion ---
-[ -f /etc/bash_completion.d/azure-cli ] && source /etc/bash_completion.d/azure-cli 2>/dev/null
+export PATH="$HOME/.local/bin:$PATH"

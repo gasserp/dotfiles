@@ -1,18 +1,34 @@
 #!/usr/bin/env bash
 # =============================================================================
 # Linux / macOS installer for the dotfiles repo.
-# Installs the listed tools and symlinks the example configs into place.
+# Installs the listed tools and symlinks the configs into place.
 #
 # Usage:
-#   ./install.sh                 # install everything
-#   ./install.sh link-only       # only create symlinks (skip package install)
-#   ./install.sh packages-only   # only install packages (skip linking)
+#   ./install.sh                       # install packages + link configs
+#   ./install.sh link-only             # only create symlinks
+#   ./install.sh packages-only         # only install packages
+#   ./install.sh [mode] --force        # overwrite an existing ~/.zshrc
+#                                      # (otherwise the existing one is kept
+#                                      # and a small source block is appended)
 # =============================================================================
 set -euo pipefail
 
 DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MODE="${1:-all}"
 OS="$(uname -s)"
+
+MODE="all"
+FORCE=0
+for arg in "$@"; do
+    case "$arg" in
+        --force|-f)                    FORCE=1 ;;
+        all|link-only|packages-only)   MODE="$arg" ;;
+        -h|--help)
+            sed -n '2,13p' "$0" | sed 's/^# \{0,1\}//'
+            exit 0
+            ;;
+        *) printf 'Unknown arg: %s\n' "$arg" >&2; exit 2 ;;
+    esac
+done
 
 log()   { printf '\033[1;34m[*]\033[0m %s\n' "$*"; }
 ok()    { printf '\033[1;32m[+]\033[0m %s\n' "$*"; }
@@ -99,7 +115,6 @@ install_packages() {
     install_azure_cli
     install_oh_my_posh
     install_pwsh
-    install_zsh_plugins
 }
 
 install_vscode() {
@@ -217,22 +232,8 @@ install_oh_my_posh() {
     esac
 }
 
-install_zsh_plugins() {
-    local plug_dir="$HOME/.local/share/zsh/plugins"
-    mkdir -p "$plug_dir"
-    log "Installing zsh plugins (no oh-my-zsh) into $plug_dir"
-    _clone_or_pull() {
-        local repo="$1" dst="$2"
-        if [ -d "$dst/.git" ]; then
-            git -C "$dst" pull --ff-only --quiet || true
-        else
-            git clone --depth=1 "$repo" "$dst" --quiet
-        fi
-    }
-    _clone_or_pull https://github.com/zsh-users/zsh-autosuggestions     "$plug_dir/zsh-autosuggestions"
-    _clone_or_pull https://github.com/zsh-users/zsh-syntax-highlighting "$plug_dir/zsh-syntax-highlighting"
-    _clone_or_pull https://github.com/zsh-users/zsh-completions          "$plug_dir/zsh-completions"
-}
+# zinit (used by our zshrc) bootstraps itself + its plugins on first run,
+# so no separate plugin-install step is needed here.
 
 # -----------------------------------------------------------------------------
 # Symlinks. `link <src> <dst>` creates dst -> src, backing up any real file.
@@ -279,10 +280,11 @@ create_links() {
 
     # zsh — only own ~/.zshrc if the user doesn't already have a real one.
     # Otherwise just append a source block at the bottom of theirs.
-    if [ -L "$HOME/.zshrc" ] || [ ! -e "$HOME/.zshrc" ]; then
+    # --force makes us replace whatever's there.
+    if [ "$FORCE" -eq 1 ] || [ -L "$HOME/.zshrc" ] || [ ! -e "$HOME/.zshrc" ]; then
         link "$DOTFILES/zsh/zshrc" "$HOME/.zshrc"
     else
-        warn "$HOME/.zshrc exists — leaving it in place."
+        warn "$HOME/.zshrc exists — leaving it in place. Re-run with --force to overwrite."
         ensure_zshrc_sources
     fi
     link "$DOTFILES/zsh/aliases.zsh"  "$HOME/.config/zsh/aliases.zsh"
