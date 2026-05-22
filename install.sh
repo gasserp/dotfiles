@@ -251,14 +251,40 @@ link() {
     ok "linked: $dst -> $src"
 }
 
+# Append an idempotent source block to an existing rc file so we pick up
+# our aliases / fzf settings without replacing the user's own config.
+# Markers make it safe to re-run.
+ensure_zshrc_sources() {
+    local rc="$HOME/.zshrc"
+    local marker='# >>> dotfiles >>>'
+    if [ -f "$rc" ] && grep -qF "$marker" "$rc"; then
+        ok "dotfiles source block already present in $rc"
+        return
+    fi
+    log "Appending dotfiles source block to $rc"
+    cat >> "$rc" <<'EOF'
+
+# >>> dotfiles >>>
+[ -f "$HOME/.config/fzf/fzf.zsh" ]     && source "$HOME/.config/fzf/fzf.zsh"
+[ -f "$HOME/.config/zsh/aliases.zsh" ] && source "$HOME/.config/zsh/aliases.zsh"
+# <<< dotfiles <<<
+EOF
+}
+
 create_links() {
     log "Linking configs…"
 
     # vim
     link "$DOTFILES/vim/vimrc" "$HOME/.vimrc"
 
-    # zsh (Linux only)
-    link "$DOTFILES/zsh/zshrc"        "$HOME/.zshrc"
+    # zsh — only own ~/.zshrc if the user doesn't already have a real one.
+    # Otherwise just append a source block at the bottom of theirs.
+    if [ -L "$HOME/.zshrc" ] || [ ! -e "$HOME/.zshrc" ]; then
+        link "$DOTFILES/zsh/zshrc" "$HOME/.zshrc"
+    else
+        warn "$HOME/.zshrc exists — leaving it in place."
+        ensure_zshrc_sources
+    fi
     link "$DOTFILES/zsh/aliases.zsh"  "$HOME/.config/zsh/aliases.zsh"
 
     # fzf
