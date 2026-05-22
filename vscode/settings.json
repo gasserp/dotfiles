@@ -138,7 +138,7 @@
   "workbench.layoutControl.enabled": false,
   "workbench.editor.editorActionsLocation": "hidden",
 
-  "workbench.colorTheme": "Catppuccin Frappé",
+  "workbench.colorTheme": "GitHub Dark High Contrast",
   "workbench.iconTheme": "catppuccin-frappe",
   "workbench.activityBar.location": "bottom",
   "[jsonc]": {
