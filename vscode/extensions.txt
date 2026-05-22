@@ -2,7 +2,7 @@
 #   code --install-extension <id>
 
 # --- Themes ---
-catppuccin.catppuccin-vsc
+github.github-vscode-theme
 catppuccin.catppuccin-vsc-icons
 
 # --- Formatting / general ---
