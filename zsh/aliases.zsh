@@ -66,6 +66,8 @@ if command -v terraform >/dev/null 2>&1; then
 fi
 
 # --- gb: fuzzy-pick a local or remote git branch and switch to it ---
+# OMZ's git plugin defines `alias gb='git branch'` — drop it so our function wins.
+unalias gb 2>/dev/null
 gb() {
     if ! command -v git >/dev/null 2>&1; then return 1; fi
     if ! command -v fzf >/dev/null 2>&1; then
