@@ -72,6 +72,33 @@ if (Get-Command terraform -ErrorAction SilentlyContinue) {
     function tfi { param([Parameter(ValueFromRemainingArguments=$true)][string[]]$Args) terraform init @Args }
 }
 
+# --- gb: fuzzy-pick a local or remote git branch and switch to it ---
+function gb {
+    if (-not (Get-Command git -ErrorAction SilentlyContinue)) { return }
+    if (-not (Get-Command fzf -ErrorAction SilentlyContinue)) {
+        Write-Warning "fzf not installed."
+        return
+    }
+
+    $branches = git for-each-ref --sort=-committerdate `
+        --format='%(refname:short)  %(committerdate:relative)  %(authorname)' `
+        refs/heads refs/remotes |
+        Where-Object { $_ -notmatch '^origin/HEAD' }
+    if (-not $branches) { return }
+
+    $selection = $branches | fzf --ansi --no-multi `
+        --preview 'git log --color=always --oneline -20 {1}'
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($selection)) { return }
+
+    $branch = ($selection -split '\s+', 2)[0]
+    if ($branch -match '/' -and $branch -ne 'HEAD') {
+        git switch --track $branch 2>$null
+        if ($LASTEXITCODE -ne 0) { git switch ($branch -replace '^[^/]+/', '') }
+    } else {
+        git switch $branch
+    }
+}
+
 # --- Az CLI tab completion ---
 if (Get-Command az -ErrorAction SilentlyContinue) {
     Register-ArgumentCompleter -Native -CommandName az -ScriptBlock {

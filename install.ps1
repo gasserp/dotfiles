@@ -138,6 +138,71 @@ function Create-Links {
     # az cli
     $azDir = Join-Path $HOME '.azure'
     New-Link "$Dotfiles\azcli\config" "$azDir\config"
+
+    # Windows Terminal — patch settings.json in place rather than overwriting
+    # (the file has profiles/schemes/keybinds you don't want to lose).
+    Set-WindowsTerminalSettings
+}
+
+# -----------------------------------------------------------------------------
+# Windows Terminal: merge a small set of preferences into its settings.json
+# without replacing it. Idempotent.
+# -----------------------------------------------------------------------------
+function Set-WindowsTerminalSettings {
+    $candidates = @(
+        # Store-installed (most common)
+        (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json'),
+        # Preview Store
+        (Join-Path $env:LOCALAPPDATA 'Packages\Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe\LocalState\settings.json'),
+        # Unpackaged
+        (Join-Path $env:LOCALAPPDATA 'Microsoft\Windows Terminal\settings.json')
+    )
+
+    $settings = $candidates | Where-Object { Test-Path $_ }
+    if (-not $settings) {
+        Write-Warn2 "Windows Terminal settings.json not found — skipping."
+        return
+    }
+
+    foreach ($path in $settings) {
+        try {
+            $raw = Get-Content -LiteralPath $path -Raw -ErrorAction Stop
+            $json = $raw | ConvertFrom-Json -ErrorAction Stop
+        } catch {
+            Write-Warn2 "Could not parse $path : $($_.Exception.Message)"
+            continue
+        }
+
+        # Desired top-level settings.
+        $desired = @{
+            copyOnSelect       = $true
+            copyFormatting     = 'none'   # paste-as-plain-text by default
+            trimBlockSelection = $true
+        }
+
+        $changed = $false
+        foreach ($k in $desired.Keys) {
+            if ($null -eq $json.$k -or $json.$k -ne $desired[$k]) {
+                if ($json.PSObject.Properties.Match($k).Count -gt 0) {
+                    $json.$k = $desired[$k]
+                } else {
+                    $json | Add-Member -NotePropertyName $k -NotePropertyValue $desired[$k] -Force
+                }
+                $changed = $true
+            }
+        }
+
+        if (-not $changed) {
+            Write-Ok "Windows Terminal settings already match: $path"
+            continue
+        }
+
+        $backup = "$path.bak.$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+        Copy-Item -LiteralPath $path -Destination $backup
+        Write-Warn2 "Backed up $path -> $backup"
+        $json | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath $path -Encoding UTF8
+        Write-Ok "Patched copyOnSelect=true in $path"
+    }
 }
 
 # -----------------------------------------------------------------------------
