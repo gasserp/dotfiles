@@ -1,13 +1,35 @@
 # VS Code extensions installed by the install scripts via:
 #   code --install-extension <id>
-# Replace this list with your own.
 
-ms-vscode.powershell
-ms-azuretools.vscode-azurecli
-ms-azuretools.vscode-azureresourcegroups
+# --- Themes ---
+catppuccin.catppuccin-vsc
+catppuccin.catppuccin-vsc-icons
+
+# --- Formatting / general ---
+esbenp.prettier-vscode
+editorconfig.editorconfig
+yzhang.markdown-all-in-one
+
+# --- Git ---
+eamodio.gitlens
+
+# --- Copilot ---
 github.copilot
 github.copilot-chat
-eamodio.gitlens
-editorconfig.editorconfig
+
+# --- PowerShell ---
+ms-vscode.powershell
+
+# --- Azure / IaC ---
+ms-azuretools.vscode-azurecli
+ms-azuretools.vscode-azureresourcegroups
+ms-azuretools.vscode-bicep
+hashicorp.terraform
+
+# --- Languages ---
+golang.go
+redhat.vscode-yaml
+
+# --- Remote ---
 ms-vscode-remote.remote-wsl
 ms-vscode-remote.remote-ssh
