@@ -64,3 +64,27 @@ if command -v terraform >/dev/null 2>&1; then
     tfa() { terraform apply "$@"; }
     tfi() { terraform init "$@"; }
 fi
+
+# --- gb: fuzzy-pick a local or remote git branch and switch to it ---
+gb() {
+    if ! command -v git >/dev/null 2>&1; then return 1; fi
+    if ! command -v fzf >/dev/null 2>&1; then
+        printf 'fzf not installed.\n' >&2
+        return 1
+    fi
+    local sel branch
+    sel="$(git for-each-ref --sort=-committerdate \
+            --format='%(refname:short)  %(committerdate:relative)  %(authorname)' \
+            refs/heads refs/remotes \
+        | grep -v '^origin/HEAD' \
+        | fzf --ansi --no-multi \
+              --preview 'git log --color=always --oneline -20 {1}')" || return
+    [ -z "$sel" ] && return
+    branch="${sel%% *}"
+    if [[ "$branch" == */* ]]; then
+        # Remote ref (origin/foo) — create or switch to a local tracking branch.
+        git switch --track "$branch" 2>/dev/null || git switch "${branch#*/}"
+    else
+        git switch "$branch"
+    fi
+}
