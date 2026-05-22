@@ -83,10 +83,12 @@ install_packages() {
             ;;
         brew)
             brew update
+            # PowerShell is a formula now — the `powershell` cask was deprecated
+            # by Homebrew because it didn't pass macOS Gatekeeper.
             brew install \
                 vim git zsh fzf fd ripgrep bat lazygit \
-                azure-cli
-            brew install --cask visual-studio-code powershell ghostty
+                azure-cli powershell
+            brew install --cask visual-studio-code ghostty
             ;;
         *)
             warn "Unknown package manager — install tools manually."
@@ -186,7 +188,7 @@ install_pwsh() {
             warn "Install powershell-bin from AUR for PowerShell on Arch."
             ;;
         brew)
-            brew install --cask powershell
+            brew install powershell
             ;;
     esac
 
