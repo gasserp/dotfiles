@@ -1,0 +1,46 @@
+# =============================================================================
+# Ghostty config
+# Linked to:
+#   Linux : ~/.config/ghostty/config
+#   macOS : ~/Library/Application Support/com.mitchellh.ghostty/config
+#           (Ghostty also reads ~/.config/ghostty/config on macOS.)
+# Docs  : https://ghostty.org/docs/config/reference
+# List themes: `ghostty +list-themes`
+# =============================================================================
+
+# --- Theme ---
+# Matches Windows Terminal's "One Half Dark" (same palette as Atom's One Half).
+theme = OneHalfDark
+
+# --- Font ---
+font-family = Liga SFMono Nerd Font
+font-family = Cascadia Code
+font-size = 14
+font-feature = +liga
+font-feature = +calt
+font-thicken = true
+
+# --- Cursor ---
+cursor-style = bar
+cursor-style-blink = true
+adjust-cursor-thickness = 1
+
+# --- Window ---
+window-padding-x = 8
+window-padding-y = 8
+window-padding-balance = true
+window-decoration = true
+window-save-state = always
+confirm-close-surface = false
+mouse-hide-while-typing = true
+
+# --- Behavior ---
+copy-on-select = clipboard
+clipboard-trim-trailing-spaces = true
+clipboard-paste-protection = true
+shell-integration = detect
+shell-integration-features = cursor,sudo,title
+scrollback-limit = 100000
+
+# --- Quick terminal (quake-style drop-down) ---
+keybind = global:ctrl+grave_accent=toggle_quick_terminal
