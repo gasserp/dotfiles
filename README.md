@@ -19,6 +19,7 @@ OS that installs everything and symlinks the configs into place.
 | fzf           | `fzf/fzf.zsh`                                       | `~/.config/fzf/fzf.zsh`                | (PSFzf module in the PowerShell profile) |
 | oh-my-posh    | `oh-my-posh/dotfiles.omp.json`                      | `~/.config/oh-my-posh/`                | `~\.poshthemes\`                         |
 | lazygit       | `lazygit/config.yml`                                | `~/.config/lazygit/config.yml`         | `%APPDATA%\lazygit\config.yml`           |
+| Ghostty       | `ghostty/config` (theme: `OneHalfDark`)             | `~/.config/ghostty/config` (+ macOS Application Support) | — (not supported on Windows) |
 
 ## Install
 
@@ -77,7 +78,8 @@ or run from an elevated shell to get real symlinks.
 ├── zsh/{zshrc,aliases.zsh}
 ├── fzf/fzf.zsh
 ├── oh-my-posh/dotfiles.omp.json
-└── lazygit/config.yml
+├── lazygit/config.yml
+└── ghostty/config
 ```
 
 ## Adding a new tool

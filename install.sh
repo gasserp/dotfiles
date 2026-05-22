@@ -63,7 +63,7 @@ install_packages() {
             $SUDO dnf install -y vim git curl wget unzip zsh fzf fd-find ripgrep bat lazygit
             ;;
         pacman)
-            $SUDO pacman -Sy --noconfirm vim git curl wget unzip zsh fzf fd ripgrep bat lazygit
+            $SUDO pacman -Sy --noconfirm vim git curl wget unzip zsh fzf fd ripgrep bat lazygit ghostty
             ;;
         *)
             warn "Unknown package manager — install tools manually."
@@ -229,6 +229,13 @@ create_links() {
     # powershell (Linux profile location)
     link "$DOTFILES/powershell/Microsoft.PowerShell_profile.ps1" \
          "$HOME/.config/powershell/Microsoft.PowerShell_profile.ps1"
+
+    # ghostty
+    link "$DOTFILES/ghostty/config" "$HOME/.config/ghostty/config"
+    if [ "$(uname -s)" = "Darwin" ]; then
+        link "$DOTFILES/ghostty/config" \
+             "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
+    fi
 }
 
 # -----------------------------------------------------------------------------
