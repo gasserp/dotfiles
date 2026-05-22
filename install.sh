@@ -85,7 +85,7 @@ install_packages() {
             brew update
             brew install \
                 vim git zsh fzf fd ripgrep bat lazygit \
-                oh-my-posh azure-cli
+                azure-cli
             brew install --cask visual-studio-code powershell ghostty
             ;;
         *)
@@ -202,8 +202,17 @@ install_oh_my_posh() {
         return
     fi
     log "Installing oh-my-posh…"
-    mkdir -p "$HOME/.local/bin"
-    curl -s https://ohmyposh.dev/install.sh | bash -s -- -d "$HOME/.local/bin"
+    case "$PM" in
+        brew)
+            # Use JanDeDobbeleer's tap (the author's canonical source).
+            # The homebrew/core formula exists too but conflicts with the tap.
+            brew install jandedobbeleer/oh-my-posh/oh-my-posh
+            ;;
+        *)
+            mkdir -p "$HOME/.local/bin"
+            curl -s https://ohmyposh.dev/install.sh | bash -s -- -d "$HOME/.local/bin"
+            ;;
+    esac
 }
 
 install_zsh_plugins() {
