@@ -8,9 +8,30 @@
 # List themes: `ghostty +list-themes`
 # =============================================================================
 
-# --- Theme ---
-# Matches Windows Terminal's "One Half Dark" (same palette as Atom's One Half).
-theme = OneHalfDark
+# --- Theme: One Half Dark ---
+# Palette inlined (matches Windows Terminal's "One Half Dark") instead of
+# `theme = OneHalfDark`, so it doesn't depend on Ghostty's bundled theme set.
+background = #282C34
+foreground = #DCDFE4
+cursor-color = #A3B3CC
+selection-background = #474E5D
+selection-foreground = #DCDFE4
+palette = 0=#282C34
+palette = 1=#E06C75
+palette = 2=#98C379
+palette = 3=#E5C07B
+palette = 4=#61AFEF
+palette = 5=#C678DD
+palette = 6=#56B6C2
+palette = 7=#DCDFE4
+palette = 8=#5A6374
+palette = 9=#E06C75
+palette = 10=#98C379
+palette = 11=#E5C07B
+palette = 12=#61AFEF
+palette = 13=#C678DD
+palette = 14=#56B6C2
+palette = 15=#DCDFE4
 
 # --- Font ---
 font-family = Liga SFMono Nerd Font
