@@ -20,6 +20,7 @@ OS that installs everything and symlinks the configs into place.
 | oh-my-posh    | `oh-my-posh/dotfiles.omp.json`                      | `~/.config/oh-my-posh/`                | `~\.poshthemes\`                         |
 | lazygit       | `lazygit/config.yml`                                | `~/.config/lazygit/config.yml`         | `%APPDATA%\lazygit\config.yml`           |
 | Ghostty       | `ghostty/config` (theme: `OneHalfDark`)             | `~/.config/ghostty/config` (+ macOS Application Support) | — (not supported on Windows) |
+| Claude Code   | `claude/statusline-command.sh`, `statusline-helper.js` | `~/.claude/` (+ `statusLine` set in `~/.claude/settings.json`) | `~\.claude\` (same, via Git Bash) |
 
 ## Install
 
@@ -108,7 +109,8 @@ To debug:
 ├── fzf/fzf.zsh
 ├── oh-my-posh/dotfiles.omp.json
 ├── lazygit/config.yml
-└── ghostty/config
+├── ghostty/config
+└── claude/{statusline-command.sh,statusline-helper.js}
 ```
 
 ## Adding a new tool
