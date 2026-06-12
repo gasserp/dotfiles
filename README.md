@@ -70,17 +70,22 @@ or run from an elevated shell to get real symlinks.
 
 #### Troubleshooting: "new terminal still looks vanilla" / aliases like `cdc`/`ccd` missing
 
-The profile is linked to both the PowerShell 7+ profile path
-(`~\Documents\PowerShell\Microsoft.PowerShell_profile.ps1`) and the Windows
-PowerShell 5.1 path (`~\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1`),
-but a "new terminal" only picks up the profile that matches what it actually
-launches:
+The installer links the profile into your real `Documents\PowerShell` (and
+`Documents\WindowsPowerShell`) folder via `[Environment]::GetFolderPath('MyDocuments')`,
+which accounts for **OneDrive Known Folder Move** redirecting `Documents` to
+somewhere like `C:\Users\<you>\OneDrive\Documents` (or a localized name like
+`Dokumente`). If you ran an older version of this script, it may have written
+to the unredirected `$HOME\Documents\PowerShell` instead — a path PowerShell
+never reads — leaving your real `$PROFILE` untouched.
 
+To debug:
+
+- `$PROFILE` shows the exact file PowerShell loads for this host. Run
+  `Test-Path $PROFILE` and `Get-Content $PROFILE` to confirm it's the
+  dotfiles version, not stale content.
 - Check Windows Terminal's default profile (Settings > Startup > Default
   profile) — if it's "Windows PowerShell" instead of "PowerShell", that's a
   different shell with its own `$PROFILE`.
-- Confirm the file was actually updated: `Get-Content $PROFILE` (run inside
-  the shell you opened) should show the dotfiles content, not be empty.
 - If `oh-my-posh`, `fzf`, etc. report as not found, fully restart your
   terminal app (or sign out/in) — winget's PATH changes don't apply to
   already-open shells or shells spawned from a stale environment.

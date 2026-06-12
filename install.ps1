@@ -140,14 +140,19 @@ function Create-Links {
     New-Link "$Dotfiles\vscode\keybindings.json" "$vscodeUser\keybindings.json"
 
     # powershell profile (CurrentUserCurrentHost for the console host)
+    # Use the real "Documents" folder, not $HOME\Documents — OneDrive's
+    # Known Folder Move can redirect Documents elsewhere (e.g.
+    # C:\Users\<you>\OneDrive\Dokumente), which is where $PROFILE points.
+    $docsDir = [Environment]::GetFolderPath('MyDocuments')
+
     # PowerShell 7+ (pwsh) — what "Open a new terminal" should mean.
-    $pwshDir = Join-Path $HOME 'Documents\PowerShell'
+    $pwshDir = Join-Path $docsDir 'PowerShell'
     New-Link "$Dotfiles\powershell\Microsoft.PowerShell_profile.ps1" `
              "$pwshDir\Microsoft.PowerShell_profile.ps1"
 
     # Windows PowerShell 5.1 — also link here in case that's still the
     # default profile in Windows Terminal / the one a "new terminal" opens.
-    $winPSDir = Join-Path $HOME 'Documents\WindowsPowerShell'
+    $winPSDir = Join-Path $docsDir 'WindowsPowerShell'
     New-Link "$Dotfiles\powershell\Microsoft.PowerShell_profile.ps1" `
              "$winPSDir\Microsoft.PowerShell_profile.ps1"
 
