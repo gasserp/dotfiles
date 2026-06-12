@@ -173,6 +173,12 @@ function Create-Links {
     # Windows Terminal — patch settings.json in place rather than overwriting
     # (the file has profiles/schemes/keybinds you don't want to lose).
     Set-WindowsTerminalSettings
+
+    # Claude Code statusline (Git Bash + node are required to run it).
+    $claudeDir = Join-Path $HOME '.claude'
+    New-Link "$Dotfiles\claude\statusline-command.sh" "$claudeDir\statusline-command.sh"
+    New-Link "$Dotfiles\claude\statusline-helper.js"  "$claudeDir\statusline-helper.js"
+    Set-ClaudeSettings
 }
 
 # -----------------------------------------------------------------------------
@@ -234,6 +240,53 @@ function Set-WindowsTerminalSettings {
         $json | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath $path -Encoding UTF8
         Write-Ok "Patched copyOnSelect=true in $path"
     }
+}
+
+# -----------------------------------------------------------------------------
+# Claude Code: point statusLine at the linked statusline-command.sh without
+# clobbering the rest of ~/.claude/settings.json (permissions, etc.).
+# -----------------------------------------------------------------------------
+function Set-ClaudeSettings {
+    $claudeDir = Join-Path $HOME '.claude'
+    $path = Join-Path $claudeDir 'settings.json'
+
+    if (-not (Test-Path $claudeDir)) { New-Item -ItemType Directory -Path $claudeDir -Force | Out-Null }
+
+    if (Test-Path $path) {
+        try {
+            $json = Get-Content -LiteralPath $path -Raw -ErrorAction Stop | ConvertFrom-Json -ErrorAction Stop
+        } catch {
+            Write-Warn2 "Could not parse $path : $($_.Exception.Message)"
+            return
+        }
+    } else {
+        $json = [PSCustomObject]@{}
+    }
+
+    $desired = [PSCustomObject]@{
+        type    = 'command'
+        command = 'bash ~/.claude/statusline-command.sh'
+    }
+
+    if ($json.PSObject.Properties.Match('statusLine').Count -gt 0 -and
+        ($json.statusLine.type -eq $desired.type) -and ($json.statusLine.command -eq $desired.command)) {
+        Write-Ok "Claude Code statusLine already configured: $path"
+        return
+    }
+
+    if ($json.PSObject.Properties.Match('statusLine').Count -gt 0) {
+        $json.statusLine = $desired
+    } else {
+        $json | Add-Member -NotePropertyName 'statusLine' -NotePropertyValue $desired -Force
+    }
+
+    if (Test-Path $path) {
+        $backup = "$path.bak.$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+        Copy-Item -LiteralPath $path -Destination $backup
+        Write-Warn2 "Backed up $path -> $backup"
+    }
+    $json | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath $path -Encoding UTF8
+    Write-Ok "Configured Claude Code statusLine in $path"
 }
 
 # -----------------------------------------------------------------------------

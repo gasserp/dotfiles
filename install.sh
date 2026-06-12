@@ -320,6 +320,51 @@ create_links() {
         link "$DOTFILES/ghostty/config" \
              "$HOME/Library/Application Support/com.mitchellh.ghostty/config"
     fi
+
+    # Claude Code statusline
+    link "$DOTFILES/claude/statusline-command.sh" "$HOME/.claude/statusline-command.sh"
+    link "$DOTFILES/claude/statusline-helper.js"  "$HOME/.claude/statusline-helper.js"
+    ensure_claude_settings
+}
+
+# -----------------------------------------------------------------------------
+# Claude Code: point statusLine at the linked statusline-command.sh without
+# clobbering the rest of ~/.claude/settings.json (permissions, etc.). Uses
+# node since the statusline itself requires it.
+# -----------------------------------------------------------------------------
+ensure_claude_settings() {
+    local path="$HOME/.claude/settings.json"
+    mkdir -p "$HOME/.claude"
+
+    if ! command -v node >/dev/null 2>&1; then
+        warn "node not found — skipping Claude Code statusLine config (statusline-command.sh requires it too)."
+        return
+    fi
+
+    if [ -f "$path" ] && [ ! -L "$path" ]; then
+        local backup="${path}.bak.$(date +%Y%m%d-%H%M%S)"
+        cp "$path" "$backup"
+    fi
+
+    node -e '
+const fs = require("fs");
+const path = process.argv[1];
+let json = {};
+if (fs.existsSync(path)) {
+    try { json = JSON.parse(fs.readFileSync(path, "utf8")); } catch (e) {
+        console.error("Could not parse " + path + ": " + e.message);
+        process.exit(1);
+    }
+}
+const desired = { type: "command", command: "bash ~/.claude/statusline-command.sh" };
+if (json.statusLine && json.statusLine.type === desired.type && json.statusLine.command === desired.command) {
+    console.log("Claude Code statusLine already configured: " + path);
+    process.exit(0);
+}
+json.statusLine = desired;
+fs.writeFileSync(path, JSON.stringify(json, null, 2) + "\n");
+console.log("Configured Claude Code statusLine in " + path);
+' "$path" && ok "Claude Code statusLine configured" || warn "Failed to configure Claude Code statusLine"
 }
 
 # -----------------------------------------------------------------------------
