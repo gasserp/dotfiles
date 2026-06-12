@@ -1,17 +1,24 @@
 # =============================================================================
-# Example PowerShell 7+ profile — replace with your own
-# Linked to: $PROFILE.CurrentUserAllHosts
-#   Windows: $HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1
+# Example PowerShell profile — replace with your own
+# Linked to: $PROFILE.CurrentUserCurrentHost (console host)
+#   Windows: $HOME\Documents\PowerShell\Microsoft.PowerShell_profile.ps1        (PowerShell 7+)
+#            $HOME\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1 (Windows PowerShell 5.1)
 #   Linux  : $HOME/.config/powershell/Microsoft.PowerShell_profile.ps1
 # =============================================================================
 
 # --- PSReadLine ---
 if (Get-Module -ListAvailable -Name PSReadLine) {
     Import-Module PSReadLine
+    $psrl = Get-Module PSReadLine
     Set-PSReadLineOption -EditMode Windows
-    Set-PSReadLineOption -PredictionSource HistoryAndPlugin
-    Set-PSReadLineOption -PredictionViewStyle ListView
     Set-PSReadLineOption -HistoryNoDuplicates
+    # Prediction features need PSReadLine 2.1+ (Windows PowerShell 5.1 ships 2.0.0).
+    if ($psrl.Version -ge [version]'2.1.0') {
+        Set-PSReadLineOption -PredictionSource HistoryAndPlugin
+    }
+    if ($psrl.Version -ge [version]'2.2.0') {
+        Set-PSReadLineOption -PredictionViewStyle ListView
+    }
     Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
     Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
     Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
