@@ -111,6 +111,23 @@ function New-Link {
     }
 }
 
+# -----------------------------------------------------------------------------
+# Without this, a freshly installed shell with the default 'Restricted'
+# policy silently skips the profile entirely — no error, no prompt theme,
+# no aliases/functions.
+# -----------------------------------------------------------------------------
+function Set-ProfileExecutionPolicy {
+    try {
+        $current = Get-ExecutionPolicy -Scope CurrentUser
+        if ($current -eq 'Restricted' -or $current -eq 'Undefined') {
+            Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned -Force
+            Write-Ok "Set CurrentUser execution policy to RemoteSigned (was $current) so the profile can load."
+        }
+    } catch {
+        Write-Warn2 "Could not update execution policy: $($_.Exception.Message)"
+    }
+}
+
 function Create-Links {
     Write-Log "Linking configs…"
 
@@ -122,10 +139,24 @@ function Create-Links {
     New-Link "$Dotfiles\vscode\settings.json"    "$vscodeUser\settings.json"
     New-Link "$Dotfiles\vscode\keybindings.json" "$vscodeUser\keybindings.json"
 
-    # powershell profile (CurrentUserAllHosts)
-    $pwshDir = Join-Path $HOME 'Documents\PowerShell'
+    # powershell profile (CurrentUserCurrentHost for the console host)
+    # Use the real "Documents" folder, not $HOME\Documents — OneDrive's
+    # Known Folder Move can redirect Documents elsewhere (e.g.
+    # C:\Users\<you>\OneDrive\Dokumente), which is where $PROFILE points.
+    $docsDir = [Environment]::GetFolderPath('MyDocuments')
+
+    # PowerShell 7+ (pwsh) — what "Open a new terminal" should mean.
+    $pwshDir = Join-Path $docsDir 'PowerShell'
     New-Link "$Dotfiles\powershell\Microsoft.PowerShell_profile.ps1" `
              "$pwshDir\Microsoft.PowerShell_profile.ps1"
+
+    # Windows PowerShell 5.1 — also link here in case that's still the
+    # default profile in Windows Terminal / the one a "new terminal" opens.
+    $winPSDir = Join-Path $docsDir 'WindowsPowerShell'
+    New-Link "$Dotfiles\powershell\Microsoft.PowerShell_profile.ps1" `
+             "$winPSDir\Microsoft.PowerShell_profile.ps1"
+
+    Set-ProfileExecutionPolicy
 
     # oh-my-posh theme
     $themeDir = Join-Path $HOME '.poshthemes'
@@ -214,4 +245,6 @@ switch ($Mode) {
     'PackagesOnly'  { Install-Packages }
 }
 
-Write-Ok "Done. Open a new PowerShell session to load the new profile."
+Write-Ok "Done. Open a new PowerShell 7 (pwsh) terminal to load the new profile."
+Write-Log "Profile is linked for both PowerShell 7 and Windows PowerShell 5.1 — if a 'new terminal' still looks vanilla, check which one Windows Terminal opens by default (Settings > Startup > Default profile)."
+Write-Log "If oh-my-posh/fzf/etc. aren't found yet, fully restart your terminal app (or sign out/in) so the PATH changes from winget take effect."

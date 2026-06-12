@@ -13,7 +13,7 @@ OS that installs everything and symlinks the configs into place.
 | Vim           | `vim/vimrc`                                         | `~/.vimrc`                             | `%USERPROFILE%\_vimrc`                   |
 | VS Code       | `vscode/settings.json`, `keybindings.json`          | `~/.config/Code/User/`                 | `%APPDATA%\Code\User\`                   |
 | VS Code ext.  | `vscode/extensions.txt`                             | installed via `code --install-extension`                                          |
-| PowerShell 7  | `powershell/Microsoft.PowerShell_profile.ps1`       | `~/.config/powershell/`                | `~\Documents\PowerShell\`                |
+| PowerShell    | `powershell/Microsoft.PowerShell_profile.ps1`       | `~/.config/powershell/`                | `~\Documents\PowerShell\` (7+) and `~\Documents\WindowsPowerShell\` (5.1) |
 | Azure CLI     | `azcli/config`                                      | `~/.azure/config`                      | `%USERPROFILE%\.azure\config`            |
 | Zsh (Linux)   | `zsh/zshrc`, `zsh/aliases.zsh`                      | `~/.zshrc`, `~/.config/zsh/aliases.zsh`| —                                        |
 | fzf           | `fzf/fzf.zsh`                                       | `~/.config/fzf/fzf.zsh`                | (PSFzf module in the PowerShell profile) |
@@ -67,6 +67,32 @@ and `PSFzf` PowerShell modules.
 If `winget` can't create symlinks, the script falls back to copying. Enable
 [Developer Mode](https://learn.microsoft.com/windows/apps/get-started/enable-your-device-for-development)
 or run from an elevated shell to get real symlinks.
+
+#### Troubleshooting: "new terminal still looks vanilla" / aliases like `cdc`/`ccd` missing
+
+The installer links the profile into your real `Documents\PowerShell` (and
+`Documents\WindowsPowerShell`) folder via `[Environment]::GetFolderPath('MyDocuments')`,
+which accounts for **OneDrive Known Folder Move** redirecting `Documents` to
+somewhere like `C:\Users\<you>\OneDrive\Documents` (or a localized name like
+`Dokumente`). If you ran an older version of this script, it may have written
+to the unredirected `$HOME\Documents\PowerShell` instead — a path PowerShell
+never reads — leaving your real `$PROFILE` untouched.
+
+To debug:
+
+- `$PROFILE` shows the exact file PowerShell loads for this host. Run
+  `Test-Path $PROFILE` and `Get-Content $PROFILE` to confirm it's the
+  dotfiles version, not stale content.
+- Check Windows Terminal's default profile (Settings > Startup > Default
+  profile) — if it's "Windows PowerShell" instead of "PowerShell", that's a
+  different shell with its own `$PROFILE`.
+- If `oh-my-posh`, `fzf`, etc. report as not found, fully restart your
+  terminal app (or sign out/in) — winget's PATH changes don't apply to
+  already-open shells or shells spawned from a stale environment.
+- If the profile errors with "running scripts is disabled", re-run
+  `.\install.ps1 -Mode LinkOnly` (it sets the `CurrentUser` execution policy
+  to `RemoteSigned`), or run `Set-ExecutionPolicy -Scope CurrentUser
+  RemoteSigned`.
 
 ## Repo layout
 

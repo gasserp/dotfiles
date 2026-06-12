@@ -19,7 +19,7 @@
                 {
                     "foreground": "#ffffff",
                     "style": "plain",
-                    "template": "c14300@iacBox ",
+                    "template": "gap@macBox ",
                     "type": "session"
                 },
                 {
