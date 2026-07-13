@@ -71,3 +71,15 @@ eval "$(fzf --zsh)"
 [ -f "$HOME/.config/zsh/aliases.zsh" ] && source "$HOME/.config/zsh/aliases.zsh"
 
 export PATH="$HOME/.local/bin:$PATH"
+
+# --- Claude Code + local Ollama models ---
+# NOTE: 'ccd' is your fzf code-dir jumper (~/.config/zsh/aliases.zsh) — left untouched.
+# ccq/ccdev now route through the token-accounting router (:4315), not Ollama directly,
+# so local token usage is logged to ~/code/localLLM/proxy/logs/. cc-local starts the
+# router on demand. Still 100% local — the router sends ':'-tagged models to Ollama.
+alias ccq="$HOME/code/localLLM/cc-local qwen3-coder:30b"
+alias ccdev="$HOME/code/localLLM/cc-local devstral:24b"
+alias cchybrid="$HOME/code/localLLM/cc-hybrid"
+alias cchybrid-sonnet="$HOME/code/localLLM/cc-hybrid claude-sonnet-5"
+alias cchybrid-opus="$HOME/code/localLLM/cc-hybrid claude-opus-4-8"
+alias cchybrid-fable="$HOME/code/localLLM/cc-hybrid claude-fable-5"
